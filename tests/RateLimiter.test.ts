@@ -1,11 +1,7 @@
 import { describe, test, expect, beforeEach } from "bun:test";
 import { Effect, Exit, Context, Layer } from "effect";
 import Redis from "ioredis-mock";
-import {
-  makeRedisRateLimiter,
-  RateLimitExceeded,
-  type RateLimiter,
-} from "../src/RateLimiter";
+import { makeRedisRateLimiter, RateLimitExceeded } from "../src/RateLimiter";
 import { RedisService, RedisError } from "../src/RedisClient";
 
 describe("Redis Rate Limiter (Mocked)", () => {
@@ -189,6 +185,63 @@ describe("Redis Rate Limiter (Mocked)", () => {
     );
   });
 
+  test("handles empty clientId by treating it as a regular identifier", async () => {
+    const emptyClientId = ""; // Empty client ID (represents IP address in the server)
+    const testLayer = createTestRedisLayer();
+
+    // Run the test
+    await Effect.runPromise(
+      Effect.gen(function* () {
+        const limiter = yield* makeRedisRateLimiter(testConfig);
+
+        // First two requests with empty clientId should succeed
+        yield* limiter.check(emptyClientId);
+        yield* limiter.check(emptyClientId);
+
+        // Third request should fail
+        const checkResult = yield* Effect.exit(limiter.check(emptyClientId));
+        expect(Exit.isFailure(checkResult)).toBe(true);
+        
+        if (Exit.isFailure(checkResult) && checkResult.cause._tag === "Fail") {
+          const error = checkResult.cause.error;
+          expect(error).toBeInstanceOf(RateLimitExceeded);
+          if (error instanceof RateLimitExceeded) {
+            // The error should contain the empty clientId
+            expect(error.clientId).toBe(emptyClientId);
+          }
+        }
+      }).pipe(Effect.provide(testLayer))
+    );
+  });
+
+  test("IP address and actual clientId should have separate rate limits", async () => {
+    const ipIdentifier = "127.0.0.1"; // Represent IP address with actual value 
+    const clientId = "actual-client-id";
+    const testLayer = createTestRedisLayer();
+
+    await Effect.runPromise(
+      Effect.gen(function* () {
+        const limiter = yield* makeRedisRateLimiter(testConfig);
+
+        // Use up limits for IP
+        yield* limiter.check(ipIdentifier);
+        yield* limiter.check(ipIdentifier);
+
+        // Third request with IP should fail
+        const ipResult = yield* Effect.exit(limiter.check(ipIdentifier));
+        expect(Exit.isFailure(ipResult)).toBe(true);
+        
+        // But clientId should still work independently
+        yield* limiter.check(clientId);
+        yield* limiter.check(clientId);
+        
+        // And then fail after its own limit
+        const clientResult = yield* Effect.exit(limiter.check(clientId));
+        expect(Exit.isFailure(clientResult)).toBe(true);
+      }).pipe(Effect.provide(testLayer))
+    );
+  });
+
   test("sliding window behavior works correctly", async () => {
     const clientId = "test-client-6";
     const halfWindow = 260; // Just over half the window time
@@ -339,6 +392,34 @@ describe("Redis Rate Limiter (Mocked)", () => {
 
         // Request should now succeed
         yield* limiter.check(clientId);
+      }).pipe(Effect.provide(testLayer))
+    );
+  });
+
+  test("handles IP address fallback scenario", async () => {
+    // In the real server, empty string would represent an IP address fallback
+    const ipAddressIdentifier = "127.0.0.1";
+    const testLayer = createTestRedisLayer();
+
+    await Effect.runPromise(
+      Effect.gen(function* () {
+        const limiter = yield* makeRedisRateLimiter(testConfig);
+
+        // First two requests should succeed
+        yield* limiter.check(ipAddressIdentifier);
+        yield* limiter.check(ipAddressIdentifier);
+
+        // Third request should fail with RateLimitExceeded
+        const result = yield* Effect.exit(limiter.check(ipAddressIdentifier));
+        expect(Exit.isFailure(result)).toBe(true);
+        
+        if (Exit.isFailure(result) && result.cause._tag === "Fail") {
+          const error = result.cause.error;
+          expect(error).toBeInstanceOf(RateLimitExceeded);
+          if (error instanceof RateLimitExceeded) {
+            expect(error.clientId).toBe(ipAddressIdentifier);
+          }
+        }
       }).pipe(Effect.provide(testLayer))
     );
   });

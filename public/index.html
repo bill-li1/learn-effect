@@ -1,40 +1,86 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Effect Rate Limiter Test</title>
+    <!-- ... existing head content ... -->
     <style>
       body {
         font-family: sans-serif;
         padding: 20px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+      }
+      .section {
+        border: 1px solid #eee;
+        padding: 20px;
+        border-radius: 8px;
       }
       label {
         margin-right: 10px;
+        display: inline-block;
+        min-width: 100px; /* Align inputs */
       }
-      input[type="text"] {
+      input[type=\"text\"],
+      input[type=\"checkbox\"] {
         margin-right: 10px;
-        padding: 5px;
+        margin-bottom: 10px; /* Spacing */
+        padding: 8px;
       }
-      #response-display {
+      button {
+        padding: 8px 15px;
+        cursor: pointer;
+      }
+      #response-display,
+      #admin-response-display {
         margin-top: 20px;
-        padding: 10px;
+        padding: 15px;
         border: 1px solid #ccc;
         background-color: #f9f9f9;
         white-space: pre-wrap; /* Preserve formatting */
         word-wrap: break-word; /* Wrap long lines */
+        min-height: 50px; /* Ensure space */
+      }
+      h1,
+      h2 {
+        grid-column: 1 / -1; /* Make headers span both columns */
       }
     </style>
   </head>
   <body>
-    <h1>Effect Rate Limiter Test</h1>
-    <div>
-      <label for="client-id">Client ID (Bearer Token):</label>
-      <input type="text" id="client-id" value="user1" />
-      <button id="send-request-button">Send Request to /</button>
+    <div class="section">
+      <h2>Test Rate Limited Endpoint (/)</h2>
+      <div>
+        <label for="client-id">Client ID:</label>
+        <input
+          type="text"
+          id="client-id"
+          value="free-user-1"
+          placeholder="Leave blank to use IP"
+        />
+      </div>
+      <div>
+        <button id="send-request-button">Send Request</button>
+      </div>
+      <h3>Response:</h3>
+      <pre id="response-display">Click the button...</pre>
     </div>
-    <h2>Response:</h2>
-    <pre id="response-display">Enter a Client ID and click the button...</pre>
+
+    <div class="section">
+      <h2>Admin Rate Limit Override</h2>
+      <div>
+        <label for="admin-client-id">Client ID:</label>
+        <input type="text" id="admin-client-id" value="free-user-1" />
+      </div>
+      <div>
+        <label for="admin-override-status">Override Active:</label>
+        <input type="checkbox" id="admin-override-status" />
+      </div>
+      <div>
+        <button id="admin-override-button">Set Override Status</button>
+      </div>
+      <h3>Admin Response:</h3>
+      <pre id="admin-response-display">Set status and click button...</pre>
+    </div>
 
     <script src="script.js"></script>
   </body>
