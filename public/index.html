@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Effect Rate Limiter Test</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        padding: 20px;
+      }
+      label {
+        margin-right: 10px;
+      }
+      input[type="text"] {
+        margin-right: 10px;
+        padding: 5px;
+      }
+      #response-display {
+        margin-top: 20px;
+        padding: 10px;
+        border: 1px solid #ccc;
+        background-color: #f9f9f9;
+        white-space: pre-wrap; /* Preserve formatting */
+        word-wrap: break-word; /* Wrap long lines */
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Effect Rate Limiter Test</h1>
+    <div>
+      <label for="client-id">Client ID (Bearer Token):</label>
+      <input type="text" id="client-id" value="user1" />
+      <button id="send-request-button">Send Request to /</button>
+    </div>
+    <h2>Response:</h2>
+    <pre id="response-display">Enter a Client ID and click the button...</pre>
+
+    <script src="script.js"></script>
+  </body>
+</html>

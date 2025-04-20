@@ -4,10 +4,14 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "test": "bun test"
+    "test": "bun test",
+    "start:api": "bun run src/server.ts",
+    "start:frontend": "bun run src/frontend.ts",
+    "start": "bun run src/server.ts & bun run src/frontend.ts"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "ioredis-mock": "^8.9.0"
   },
   "peerDependencies": {
     "typescript": "^5"
@@ -15,6 +19,8 @@
   "dependencies": {
     "@effect/platform": "^0.80.11",
     "@effect/platform-bun": "^0.60.21",
-    "effect": "^3.14.11"
+    "@types/ioredis": "^5.0.0",
+    "effect": "^3.14.11",
+    "ioredis": "^5.6.1"
   }
 }
