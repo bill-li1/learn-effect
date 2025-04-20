@@ -3,10 +3,18 @@
   "module": "index.ts",
   "type": "module",
   "private": true,
+  "scripts": {
+    "test": "bun test"
+  },
   "devDependencies": {
     "@types/bun": "latest"
   },
   "peerDependencies": {
     "typescript": "^5"
+  },
+  "dependencies": {
+    "@effect/platform": "^0.80.11",
+    "@effect/platform-bun": "^0.60.21",
+    "effect": "^3.14.11"
   }
 }
